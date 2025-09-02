@@ -1,4 +1,4 @@
-﻿/* css/style.css */
+/* css/style.css */
 
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Poppins:wght@400;700&display=swap'); /* 确保导入Poppins字体 */
 
@@ -246,10 +246,18 @@ button:hover {
 #share-facebook { background-color: #1877F2; }
 
 /* 随机背景色（保持不变） */
-.color-1 { background-color: var(--color-pink); }
-.color-2 { background-color: var(--color-green); }
-.color-3 { background-color: var(--color-purple); }
-.color-4 { background-color: var(--color-orange); }
+.color1 { background-color: var(--color-pink); }
+.color2 { background-color: var(--color-green); }
+.color3 { background-color: var(--color-purple); }
+.color4 { background-color: var(--color-orange); }
+
+/* 新增更多颜色 */
+.color5 { background-color: #FF6B6B; } /* 红色 */
+.color6 { background-color: #4ECDC4; } /* 青色 */
+.color7 { background-color: #FFD166; } /* 黄色 */
+.color8 { background-color: #6A0572; } /* 紫色 */
+.color9 { background-color: #1A936F; } /* 绿色 */
+.color10 { background-color: #118AB2; } /* 蓝色 */
 .color-5 { background-color: var(--color-brown); }
 .color-6 { background-color: var(--color-blue); }
 
