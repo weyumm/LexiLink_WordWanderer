@@ -1,11 +1,10 @@
-﻿// js/script.js (最终修改版本，支持异步加载单词数据)
+// js/script.js (最终修改版本，支持异步加载单词数据)
 
 // wordDatabase 不再直接定义，而是一个将通过异步加载填充的变量
 let wordDatabase = {};
 
 // uiText, languageNames, gameLevels 现在是全局可访问的（来自 language_config.js）
 // 所以这里不需要再定义它们，如果它们在 language_config.js 中被定义为 const
-
 
 document.addEventListener('DOMContentLoaded', async () => {
     // --- DOM 元素获取 ---
@@ -197,159 +196,157 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 优先根据当前页面语言设置
         if (currentLang && languages.includes(currentLang)) {
             lang1Select.value = currentLang;
-            // 尝试将第二语言设置为英文或中文，如果当前语言不是它们
-            let defaultLang2 = 'en';
-            if (currentLang === 'en') defaultLang2 = 'zh';
-            else if (currentLang === 'zh') defaultLang2 = 'en';
-
-            if (languages.includes(defaultLang2)) {
-                lang2Select.value = defaultLang2;
-            } else {
-                // 如果默认的第二语言不存在，选择第一个不是当前语言的语言
-                lang2Select.value = languages.find(l => l !== currentLang) || languages[0];
-            }
+            // 尝试将第二语言设置为德语或英文，如果当前语言不是它们
+            const fallbackLang = currentLang !== 'de' ? 'de' : 'en';
+            lang2Select.value = languages.includes(fallbackLang) ? fallbackLang : languages.find(l => l !== currentLang) || 'en';
         } else {
-            // 如果 currentLang 无效或不存在，则设置默认的英中对
-            lang1Select.value = 'en';
-            lang2Select.value = 'zh';
+            // 如果当前语言不可用或未设置，则默认使用中文和德语
+            lang1Select.value = 'zh';
+            lang2Select.value = 'de';
         }
 
+        // 如果两个选择器的值相同，则调整其中一个
+        if (lang1Select.value === lang2Select.value) {
+            const otherLang = languages.find(lang => lang !== lang1Select.value);
+            if (otherLang) {
+                lang2Select.value = otherLang;
+            }
+        }
+    }
 
-        // 添加事件监听器以防止选择相同语言
-        lang1Select.addEventListener('change', () => updateLang2Options());
-        lang2Select.addEventListener('change', () => updateLang1Options());
-        updateLang2Options(); // 初始化时调用一次以确保第二个下拉菜单正确
+    // 3. 获取洗牌后的单词对
+    function getShuffledWords(lang1, lang2, count) {
+        // 确保 wordDatabase 中存在这两种语言的数据
+        if (!wordDatabase[lang1] || !wordDatabase[lang2]) {
+            console.error(`Word data for ${lang1} or ${lang2} not loaded.`);
+            return [];
+        }
+
+        // 找到两种语言中ID相同的单词
+        const commonIds = wordDatabase[lang1]
+            .map(word => word.id)
+            .filter(id => wordDatabase[lang2].some(w => w.id === id));
+
+        // 随机打乱commonIds数组并取前count个
+        const shuffledIds = commonIds
+            .map(id => ({ id, sort: Math.random() }))
+            .sort((a, b) => a.sort - b.sort)
+            .map(({ id }) => id)
+            .slice(0, count);
+
+        // 根据ID获取对应的单词对象
+        const pairs = shuffledIds.map(id => {
+            const word1 = wordDatabase[lang1].find(w => w.id === id);
+            const word2 = wordDatabase[lang2].find(w => w.id === id);
+            return {
+                id: id,
+                lang1Word: word1,
+                lang2Word: word2
+            };
+        });
+
+        return pairs;
+    }
+
+    // --- 加载单词数据函数 ---
+    async function loadWordData(lang1, lang2) {
+        const loadLang = async (lang) => {
+            if (wordDatabase[lang]) return; // 如果已经加载过，直接返回
+            switch (lang) {
+                case 'de':
+                    wordDatabase[lang] = deWords;
+                    break;
+                case 'zh':
+                    wordDatabase[lang] = zhWords;
+                    break;
+                case 'en':
+                    wordDatabase[lang] = enWords;
+                    break;
+                // 可以根据需要添加更多语言
+                default:
+                    console.error(`Language ${lang} not supported`);
+                    return;
+            }
+            console.log(`${lang} words loaded`);
+        };
+        
+        // 并行加载两种语言的数据
+        await Promise.all([loadLang(lang1), loadLang(lang2)]);
     }
     
-    function updateLang2Options() {
-        const selectedLang1 = lang1Select.value;
-        const currentLang2 = lang2Select.value;
-        lang2Select.innerHTML = '';
-        Object.keys(languageNames).forEach(lang => {
-            if (lang !== selectedLang1) {
-                lang2Select.innerHTML += `<option value="${lang}">${languageNames[lang]}</option>`;
-            }
-        });
-        if (lang2Select.querySelector(`option[value="${currentLang2}"]`)) {
-            lang2Select.value = currentLang2;
-        } else {
-            lang2Select.value = lang2Select.options[0].value;
-        }
-    }
-
-    function updateLang1Options() {
-        const selectedLang2 = lang2Select.value;
-        const currentLang1 = lang1Select.value;
-        lang1Select.innerHTML = '';
-        Object.keys(languageNames).forEach(lang => {
-            if (lang !== selectedLang2) {
-                lang1Select.innerHTML += `<option value="${lang}">${languageNames[lang]}</option>`;
-            }
-        });
-        if (lang1Select.querySelector(`option[value="${currentLang1}"]`)) {
-            lang1Select.value = currentLang1;
-        } else {
-            lang1Select.value = lang1Select.options[0].value;
-        }
-    }
-
-    // 3. 开始新游戏或新关卡 (startNewGame)
+    // --- 4. 开始新游戏 ---
     function startNewGame() {
-        if (Object.keys(wordDatabase).length === 0) {
-            alert("Word data is not loaded yet. Please try again in a moment.");
-            return;
-        }
-
-        resetTimer();
+        if (lockBoard) lockBoard = false; // 解锁面板
+        gameBoard.innerHTML = ''; // 清空游戏面板
         matchedPairs = 0;
-        
-        // 确保 currentLevel 不会超出 gameLevels 的范围
-        if (currentLevel >= gameLevels.length) {
-            currentLevel = 0; // 如果超出，则循环回到第一关
-        }
-        currentPairCount = gameLevels[currentLevel];
-        levelDisplay.innerText = `${uiText[currentLang].levelLabel}: ${currentLevel + 1}`;
-        gameBoard.innerHTML = ''; // 清空面板
-
-        // 获取并准备单词
-        const words = getShuffledWords(currentPairCount);
-        if (!words) {
-            // 如果单词不够，重置UI让用户可以重新选择
-            resetGameToInitialState();
-            return;
-        }
-
-        createBoard(words); 
-        
-        // 解锁并开始计时
-        lockBoard = false;
-        startGameBtn.disabled = true;
-        startGameBtn.innerText = uiText[currentLang].startBtn === 'Start Game' ? "Fighting!" : (uiText[currentLang].startBtn === '开始游戏' ? "加油！" : "Fighting!！"); // 根据语言显示“游戏中”
-
+        resetBoard(); // 重置选中状态
+        resetTimer(); // 重置计时器
+        startTimer(); // 开始计时
+    
+        // 禁用语言选择和开始按钮
         lang1Select.disabled = true;
         lang2Select.disabled = true;
-        startTimer();
-    }
-
-    // 4. 【核心】获取并打乱单词 (使用新数据结构)
-    function getShuffledWords(pairCount) {
+        startGameBtn.disabled = true;
+    
+        // 获取当前选择的语言
         const lang1 = lang1Select.value;
         const lang2 = lang2Select.value;
-
-        // 检查 wordDatabase[lang1] 和 wordDatabase[lang2] 是否存在
-        if (!wordDatabase[lang1] || !wordDatabase[lang2]) {
-            alert(`Error: Word data for selected languages (${languageNames[lang1]} or ${languageNames[lang2]}) not found. This should not happen if data is loaded correctly.`);
-            return null;
-        }
-
-        // 创建ID到文本的映射，方便查找
-        const lang1WordMap = new Map(wordDatabase[lang1].map(w => [w.id, w.text]));
-        const lang2WordMap = new Map(wordDatabase[lang2].map(w => [w.id, w.text]));
-        
-        // 找到两个语言共有的单词ID
-        const commonIds = wordDatabase[lang1]
-            .map(w => w.id)
-            .filter(id => lang2WordMap.has(id));
-
-        if (commonIds.length < pairCount) {
-            // 使用本地化文本构建提示
-            const alertMsg = uiText[currentLang].alertNotEnoughWords
-                .replace('{}', languageNames[lang1])
-                .replace('{}', languageNames[lang2])
-                .replace('{}', commonIds.length)
-                .replace('{}', pairCount);
-            alert(alertMsg);
-            return null;
-        }
-
-        // 打乱并选取所需数量的ID
-        const selectedIds = commonIds.sort(() => 0.5 - Math.random()).slice(0, pairCount);
-        
-        // 创建卡片数组
-        let cards = [];
-        selectedIds.forEach(id => {
-            cards.push({ id: id, text: lang1WordMap.get(id) });
-            cards.push({ id: id, text: lang2WordMap.get(id) });
-        });
-        
-        return cards.sort(() => 0.5 - Math.random());
-    }
-
-    // 5. 创建游戏面板
-    function createBoard(words) {
-        const colors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6'];
-        words.forEach(word => {
-            const card = document.createElement('div');
-            card.classList.add('card');
-            // 随机添加一个颜色类
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            card.classList.add(randomColor);
-
-            card.dataset.id = word.id;
-            card.textContent = word.text; // 直接设置文本内容
-
-            gameBoard.appendChild(card);
-            card.addEventListener('click', selectCard); // 绑定新的事件处理器
+    
+        // 加载两种语言的单词数据
+        loadWordData(lang1, lang2).then(() => {
+            // 获取当前关卡需要的单词对数量
+            currentPairCount = gameLevels[currentLevel];
+    
+            // 获取洗牌后的单词对
+            let pairs = getShuffledWords(lang1, lang2, currentPairCount);
+    
+            // 检查是否有足够的单词对
+            if (pairs.length < currentPairCount) {
+                alert(uiText[currentLang].alertNotEnoughWords.replace('{}', languageNames[lang1]).replace('{}', languageNames[lang2]).replace('{}', pairs.length).replace('{}', currentPairCount));
+                // 重新启用语言选择和开始按钮
+                lang1Select.disabled = false;
+                lang2Select.disabled = false;
+                startGameBtn.disabled = false;
+                return;
+            }
+    
+            // 创建卡片数组
+            let cards = [];
+            pairs.forEach(pair => {
+                cards.push({ id: pair.id, text: pair.lang1Word.text });
+                cards.push({ id: pair.id, text: pair.lang2Word.text });
+            });
+    
+            // 随机打乱卡片
+            cards = cards
+                .map(card => ({ card, sort: Math.random() }))
+                .sort((a, b) => a.sort - b.sort)
+                .map(({ card }) => card);
+    
+            // 定义颜色类数组
+            const colors = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6', 'color7', 'color8', 'color9', 'color10'];
+    
+            // 创建卡片元素并添加到游戏面板
+            cards.forEach(word => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                // 随机添加一个颜色类
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                card.classList.add(randomColor);
+    
+                card.dataset.id = word.id;
+                card.textContent = word.text; // 直接设置文本内容
+    
+                gameBoard.appendChild(card);
+                card.addEventListener('click', selectCard); // 绑定新的事件处理器
+            });
+        }).catch(error => {
+            console.error('Error loading word data:', error);
+            alert('Failed to load word data. Please try again.');
+            // 重新启用语言选择和开始按钮
+            lang1Select.disabled = false;
+            lang2Select.disabled = false;
+            startGameBtn.disabled = false;
         });
     }
 
@@ -501,41 +498,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         shareFacebook.href = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(shareMessage)}`;
     }
 
-    // --- 【新增】加载单词数据函数 ---
-    async function loadWordData(lang) {
-        switch (lang) {
-            case 'de':
-                wordDatabase[lang] = deWords;
-                break;
-            case 'zh':
-                wordDatabase[lang] = zhWords;
-                break;
-            case 'en':
-                wordDatabase[lang] = enWords;
-                break;
-            // 可以根据需要添加更多语言
-            default:
-                console.error(`Language ${lang} not supported`);
-                return;
-        }
-        console.log(`${lang} words loaded`);
-        // --- 游戏初始化函数 (原DOMContentLoaded内的主要逻辑) ---
-        function initGame() {
-            setUIText(currentLang);
-            populateLangSelectors();
-            levelDisplay.innerText = `${uiText[currentLang].levelLabel}: 1`; // 确保在初始加载时显示正确的关卡文本
-            loadWordData(currentLang); // 加载当前语言的单词数据
-        }
-        
-        
-        // --- 事件监听器 ---
-        startGameBtn.addEventListener('click', startNewGame);
-        continueBtn.addEventListener('click', continueChallenge);
-        winModal.addEventListener('click', (e) => {
-            if (e.target === winModal) { winModal.classList.remove('show'); }
-        });
-        
-        // --- 页面加载时开始加载数据 ---
-        // 页面加载时立即开始异步加载单词数据
+    // --- 游戏初始化函数 ---
+    function initGame() {
+        setUIText(currentLang);
+        populateLangSelectors();
+        levelDisplay.innerText = `${uiText[currentLang].levelLabel}: 1`; // 确保在初始加载时显示正确的关卡文本
+        // 不再在初始化时加载单词数据，因为此时语言选择器可能还未正确设置
+        // 单词数据将在用户点击“开始游戏”按钮时加载
     }
+    
+    // --- 事件监听器 ---
+    startGameBtn.addEventListener('click', startNewGame);
+    continueBtn.addEventListener('click', continueChallenge);
+    winModal.addEventListener('click', (e) => {
+        if (e.target === winModal) { winModal.classList.remove('show'); }
+    });
+    
+    // --- 页面加载时开始加载数据 ---
+    // 页面加载时立即开始异步加载单词数据
+    initGame(); // 调用初始化函数
 });
