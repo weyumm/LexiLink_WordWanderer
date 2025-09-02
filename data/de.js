@@ -1330,4 +1330,3 @@
 { "id": 499, "text": "Manchmal" },
 { "id": 500, "text": "Normalerweise" }
 ]
-export { deWords };
