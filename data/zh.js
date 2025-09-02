@@ -1250,4 +1250,3 @@
 { "id": 499, "text": "有时" },
 { "id": 500, "text": "通常" }
   ]
-export { zhWords };
