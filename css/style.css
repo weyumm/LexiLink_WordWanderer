@@ -1,0 +1,312 @@
+﻿/* css/style.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&family=Poppins:wght@400;700&display=swap'); /* 确保导入Poppins字体 */
+
+:root {
+    --bg-color: #fdf6e3;
+    --text-color: #657b83;
+    --panel-bg: #fdf6e3;
+    --shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    --selected-border: 4px solid #e63946;
+
+    /* 卡片颜色 */
+    --color-pink: #ffc2d1;
+    --color-green: #a2d2ff;
+    --color-purple: #d4a5a5;
+    --color-orange: #fca311;
+    --color-brown: #d2b48c;
+    --color-blue: #8ecae6;
+}
+
+body {
+    font-family: 'Poppins', sans-serif; /* 使用Poppins字体 */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* --- 语言选择器优化 --- */
+.language-selector {
+    /* 移除 position: absolute; top; right; */
+    width: 100%; /* 占据整行 */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* 增加小间距 */
+    justify-content: center; /* 居中排列 */
+    margin-bottom: 20px; /* 与标题拉开距离 */
+    padding: 10px 0; /* 增加垂直内边距 */
+    background-color: rgba(0, 0, 0, 0.02); /* 轻微背景，使其更独立 */
+    border-radius: 8px;
+}
+.language-selector a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 600;
+    font-size: 0.9rem; /* 稍微大一点，方便点击 */
+    padding: 6px 12px; /* 增加点击区域 */
+    background-color: rgba(0, 0, 0, 0.07); /* 稍深的背景，更清晰 */
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap; /* 防止单词内部换行 */
+}
+.language-selector a:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+/* --- 标题调整 --- */
+header h1 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    text-align: center;
+    color: #cb997e;
+    margin-top: 20px; /* 调整顶部间距，适应语言选择器新位置 */
+    margin-bottom: 20px;
+}
+
+/* --- 语言对选择器和控件样式优化 --- */
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* 减少间距，在小屏幕上更紧凑 */
+    margin: 15px 0;
+    flex-wrap: wrap; /* 允许换行 */
+}
+
+.language-pair-selector {
+    display: flex; /* 使用 Flexbox 进行内部布局 */
+    align-items: center; /* 垂直居中对齐 */
+    gap: 10px; /* 元素间距 */
+    font-size: 1.2rem;
+}
+
+select, button {
+    font-family: 'Nunito', sans-serif;
+    padding: 10px 15px; /* 调整内边距 */
+    border-radius: 20px;
+    border: 2px solid #ddbea9;
+    background-color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    min-width: 100px; /* 确保最小宽度 */
+    height: 45px; /* 统一高度，方便对齐 */
+    box-sizing: border-box; /* 包含padding和border在宽度内 */
+}
+
+select {
+    appearance: none; /* 移除默认的下拉箭头，可以自定义 */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=UTF8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2212%22%20height%3D%2212%22%20viewBox%3D%220%200%2012%2012%22%3E%3Cpath%20fill%3D%22%23ddbea9%22%20d%3D%22M4.293%2C7.293L6%2C9l1.707%2C-1.707L8%2C7.293Z%22%20transform%3D%22rotate(180%206%207.293)%22%2F%3E%3C%2Fsvg%3E'); /* 自定义下拉箭头 */
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px; /* 为箭头留出空间 */
+}
+
+button:hover {
+    background-color: #ffe8d6;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.game-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    flex-wrap: wrap; /* 允许换行 */
+    justify-content: center; /* 居中 */
+}
+
+#level-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.game-board {
+    display: grid;
+    gap: 15px;
+    justify-content: center;
+    width: 90%;
+    max-width: 1200px; /* 限制最大宽度 */
+    
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.card {
+    height: 120px;
+    cursor: pointer;
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    padding: 5px;
+    box-shadow: var(--shadow);
+    border: 4px solid transparent; 
+    transition: all 0.2s ease-in-out;
+    word-break: break-word; /* 允许长单词换行 */
+}
+/* 新增的选中状态 */
+.card.selected {
+    border: var(--selected-border);
+    transform: scale(1.05);
+}
+
+/* 匹配和不匹配的动画保持不变 */
+.card.matched {
+    animation: disappear 0.5s ease-in forwards;
+}
+
+@keyframes disappear {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+.card.mismatched {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); } /* 移除 rotateY，因为 .card 本身不再是翻转的 */
+    25% { transform: translateX(-10px); }
+    75% { transform: translateX(10px); }
+    from { box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.7); }
+}
+
+/* 模态框样式（保持不变） */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    z-index: 1000; /* 确保模态框在最上层 */
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    transform: scale(0.8);
+    transition: transform 0.3s ease-out;
+}
+
+.modal-overlay.show .modal-content {
+    transform: scale(1);
+}
+
+.modal-content h2 {
+    color: #cb997e;
+    margin-top: 0;
+}
+
+.share-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+}
+
+.share-buttons a {
+    text-decoration: none;
+    padding: 8px 15px;
+    color: white;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+#share-x { background-color: #1DA1F2; }
+#share-facebook { background-color: #1877F2; }
+
+/* 随机背景色（保持不变） */
+.color-1 { background-color: var(--color-pink); }
+.color-2 { background-color: var(--color-green); }
+.color-3 { background-color: var(--color-purple); }
+.color-4 { background-color: var(--color-orange); }
+.color-5 { background-color: var(--color-brown); }
+.color-6 { background-color: var(--color-blue); }
+
+/* --- 响应式设计调整 --- */
+@media (max-width: 768px) { /* 针对平板和手机的中间点 */
+    header h1 {
+        font-size: 2.2rem; /* 稍微缩小标题 */
+        margin-top: 10px; /* 缩小顶部间距 */
+    }
+
+    .controls {
+        flex-direction: column; /* 在小屏幕上垂直堆叠 */
+        gap: 15px; /* 减少垂直间距 */
+    }
+
+    .language-pair-selector {
+        flex-direction: column; /* 语言选择器内部元素也垂直堆叠 */
+        gap: 8px;
+        width: 100%; /* 占据整行 */
+        max-width: 300px; /* 限制最大宽度 */
+    }
+
+    .language-pair-selector label {
+        margin-bottom: 5px; /* 标签下方增加间距 */
+    }
+
+    .language-pair-selector select {
+        width: 100%; /* 让下拉框占据更多宽度 */
+        max-width: 250px;
+    }
+
+    .game-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) { /* 针对更小的手机屏幕 */
+    body {
+        padding: 10px;
+    }
+    header h1 {
+        font-size: 1.8rem;
+    }
+    .language-selector a {
+        font-size: 0.8rem;
+        padding: 5px 8px;
+    }
+    .game-board {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); /* 更小的卡片 */
+        gap: 8px;
+    }
+    .card {
+        height: 80px;
+        font-size: 1.2rem;
+    }
+    .modal-content {
+        padding: 20px 25px;
+    }
+}
