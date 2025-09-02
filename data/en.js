@@ -1252,4 +1252,3 @@
 { "id": 499, "text": "Sometimes" },
 { "id": 500, "text": "Usually" }
   ]
-export { enWords };
